@@ -12,9 +12,20 @@ services:
     image: prom/node-exporter
     container_name: node-exporter
     volumes:
+<<<<<<< HEAD
       - /proc:/host/proc:ro,Z
       - /sys:/host/sys:ro,Z
       - /:/rootfs:ro,Z
+=======
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro,Z
+      - alertmanager-data:/alertmanager
+    environment:
+      - SMTP_SMARTHOST=${SMTP_SMARTHOST}
+      - SMTP_FROM=${SMTP_FROM}
+      - SMTP_AUTH_USERNAME=${SMTP_AUTH_USERNAME}
+      - SMTP_AUTH_PASSWORD=${SMTP_AUTH_PASSWORD}
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO}
+>>>>>>> 4befa75 (Big Update on RHEL configurations)
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
