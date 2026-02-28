@@ -1,45 +1,57 @@
+networks:
+  monitoring:
+    driver: bridge
+
 services:
+  nginx:
+    image: docker.io/library/nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro,Z
+    networks:
+      - monitoring
+    depends_on:
+      - grafana
+      - prometheus
+    restart: unless-stopped
+
   prometheus:
-    image: prom/prometheus
+    image: docker.io/prom/prometheus:latest
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,Z
-    ports:
-      - "9090:9090"
-    restart: unless-stopped
-
-  node-exporter:
-    image: prom/node-exporter
-    container_name: node-exporter
-    volumes:
-<<<<<<< HEAD
-      - /proc:/host/proc:ro,Z
-      - /sys:/host/sys:ro,Z
-      - /:/rootfs:ro,Z
-=======
-      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro,Z
-      - alertmanager-data:/alertmanager
-    environment:
-      - SMTP_SMARTHOST=${SMTP_SMARTHOST}
-      - SMTP_FROM=${SMTP_FROM}
-      - SMTP_AUTH_USERNAME=${SMTP_AUTH_USERNAME}
-      - SMTP_AUTH_PASSWORD=${SMTP_AUTH_PASSWORD}
-      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO}
->>>>>>> 4befa75 (Big Update on RHEL configurations)
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/host/rootfs'
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana 
+    image: docker.io/grafana/grafana:latest
     container_name: grafana
-    ports:
-      - "3000:3000"
     volumes:
-      - grafana-data:/var/lib/grafana:Z
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
     restart: unless-stopped
 
+  node_exporter:
+    image: docker.io/prom/node-exporter:latest
+    container_name: node_exporter
+    networks:
+      - monitoring
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+
 volumes:
-  grafana-data:
+  prometheus_data:
+  grafana_data:
